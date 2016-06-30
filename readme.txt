@@ -11,3 +11,5 @@ test branch on dev! (201606)
 ok,let's try new branch 
 
 20160629- 分支管理策略
+
+bug fix! 20160630
