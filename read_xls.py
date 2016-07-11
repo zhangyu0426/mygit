@@ -7,7 +7,7 @@ import sys
 import xlwt
 
 
-workbook = xlrd.open_workbook('/Users/zhangyu/Desktop/RX_data_single.xls')
+workbook = xlrd.open_workbook('/Users/zhangyu/Desktop/guanjianci_chest_zy_0704_new.xls')
 sheet = workbook.sheet_names()
 sheet_name= ('').join(sheet)
 print(sheet_name)
