@@ -168,7 +168,7 @@ def load_data1(newsize=[112,112],tvt=5):
     ris_num = 30
 
     X_train, Y_train, X_val, Y_val, X_test, Y_test=[],[],[],[],[],[]
-    randomlist=range(len(rawtextcol))   # 
+    randomlist=range(len(rawtextcol))   # rawtextcol is flag
     for folderi in randomlist:
         folder=foldercol[folderi]
 #        if count441_p + count441_n >= 1000 :
@@ -176,7 +176,7 @@ def load_data1(newsize=[112,112],tvt=5):
         if len(folder)==0:
             pass
         else:
-            newpath='/media/tuixiangbeijingtest0/f989fbc9-24a9-42ce-802e-902125737abd/srv/CT1300'+foldercol1[folderi]+foldercol[folderi]+'hh'
+            newpath='/media/tuixiangbeijingtest0/f989fbc9-24a9-42ce-802e-902125737abd/srv/CT1300'+foldercol1[folderi]+foldercol[folderi]+'hh' #foldercol1 unc_path foldercol filename
             if os.path.exists(newpath): #path exists,return true. path not exists,return false
                 rawtext=rawtextcol[folderi]#0,1 health or sick
                 tmp=dicom.read_file(newpath)
