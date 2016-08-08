@@ -1,50 +1,42 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri May  6 09:19:09 2016
 
-@author: yangfan
-"""
 '''
 功能 拷贝图片到本机 拷贝图片到本机并解压
 使用方法
-1.运行cmd sudo mount -t cifs //isilon.com/PACSS /mnt/PACSS -o username=tjh 
+1.挂载服务器到本机：sudo mount -t cifs //isilon.com/ris/  /mnt/US -o username=tjh 
 2.再运行 sudo python copyIMG.py 
 
-参数 savepath                      本机保存图片的路径 一般在srv文件夹下面创建对应病种文件夹
-     xlspath                       含有图片服务器路径的xls
-     imgpath1+=table.col_values(5) 服务器路径分为两段 此为头部的xls索引
-     imgpath2+=table.col_values(6) 服务器路径分为两段 此为身体的xls索引
-     sta=0                         如果需要考取图片同时解压图片 设置sta=1
-     table.nrows                   一次操作图片的个数 如果需要限制个数 修改此处 int类型
+需要注意的是
+1，这个地址里面有空格，os.exists的时候和cmd执行的时候要匹配两种格式，中间历经两次格式转换。
 
-\\isilon.com\ris\usimage1  BAK  US_image
-us_path = '\\isilon.com\ris\usimage1  BAK\'
-     
-返回值 执行每张图片的索引和错误报告
+
+
 '''
 
 import os
 import os.path
 import xlrd
+import xlwt
 
-
-#import gdcm
-
-
-#运行代码前 运行cmd sudo mount -t cifs //isilon.com/PACSS /mnt/PACSS -o username=tjh 
-#if us_image run: sudo mount -t cifs //isilon.com/ris/usimage1  BAK /mnt/US -o username=tjh 
-#再运行 sudo python copyIMG.py  
-#/home/tuixiangbeijingtest0/Desktop/workfolder/xls
 
 sta=1
-savepath='/media/disk_sda/srv/US/'
+savepath='/media/disk_sda/srv/US'
 xlspath='/home/tuixiangbeijingtest0/Desktop/workfolder/xls/彩超-乳腺及淋巴结(双侧)_abnormal_3959.xls'
-#savepath='/srv1/breastCR/'
-#cmdstr='sudo mount -t cifs //isilon.com/PACSS /mnt/PACSS -o username=tjh'
-#path1000='/home/tuixiangbeijingtest0/Desktop/workfolder/text1/img1000'
 
 imgpath1=[]
 imgpath2=[]
+imgpath3=[]
+imgpath4=[]
+imgpath5=[]
+
+out_imgpath1=[]
+out_imgpath2=[]
+out_imgpath3=[]
+out_imgpath4=[]
+out_imgpath5=[]
+out_imgpath6=[]
+out_imgpath7=[]
+
 us_path = r'usimage1  BAK'  #us图片的路径 usimage1\ \ BAK
 local_path = '/mnt/US/' #挂载到本地的路径
 us_path_2 = '/'
@@ -55,8 +47,11 @@ data=xlrd.open_workbook(xlspath)
 table=data.sheet_by_index(0)
 imgpath1+=table.col_values(0)
 imgpath2+=table.col_values(1)
+imgpath3+=table.col_values(2)
+imgpath4+=table.col_values(3)
+imgpath5+=table.col_values(4)
 print(len(imgpath1))
-for index in range(1,table.nrows):
+for index in range(1,100):#table.nrows):
     if len(imgpath1[index])==0 or len(imgpath2[index])==0:
         continue
     str1=imgpath1[index]+us_path_2+imgpath2[index]
@@ -67,18 +62,45 @@ for index in range(1,table.nrows):
     if os.path.exists(str1):
         path_cnt = path_cnt+1
         dir_list = os.listdir(str1)
+                
         str1 = str1.replace(r'usimage1  BAK','usimage1\ \ BAK')
         #print(dir_list[0])
         cmdstr='cp --parents '+str1+us_path_2+dir_list[0]+' '+savepath
-        #print(cmdstr)
-        
-        #print(cmdstr)
-        #print(cmdstr1)
+
         print(index) 
         if sta==1:
             cmdstr1='dcmdjpeg '+savepath+str1+us_path_2+dir_list[0]+' '+savepath+str1+us_path_2+dir_list[0]+'hh' #gdcm2pnm
             os.system(cmdstr1)
             os.system(cmdstr)
+            if os.path.isfile(savepath+str1+us_path_2+dir_list[0]+'hh'): #如果成功解压，就append到list中去，最后输出病人报告和路径的excel
+                out_imgpath1.append(imgpath1[index])
+                out_imgpath2.append(imgpath2[index])
+                out_imgpath3.append(imgpath3[index])
+                out_imgpath4.append(imgpath4[index])
+                out_imgpath5.append(imgpath5[index])
+                out_imgpath6.append(dir_list[0])  
+                out_imgpath7.append(1)                  
+
+
+wb_output = xlwt.Workbook(encoding='utf-8')
+sheet_output = wb_output.add_sheet('US_Breast') 
+sheet_output.write(0,0,'LASTSAVETIME')   
+sheet_output.write(0,1,'PATIENT_ID')
+sheet_output.write(0,2,'EXAM_ITEMSSTR')
+sheet_output.write(0,3,'DESCRIPTION')
+sheet_output.write(0,4,'IMPRESSION')
+sheet_output.write(0,5,'filename')
+sheet_output.write(0,6,'tag')
+
+colcount = 0
+for content in [out_imgpath1,out_imgpath2,out_imgpath3,out_imgpath4,out_imgpath5,out_imgpath6,out_imgpath7]:
+    xlcount = 1
+    for item in content:
+        sheet_output.write(xlcount,colcount,item)
+        xlcount = xlcount+1
+    colcount = colcount+1
+wb_output.save('/home/tuixiangbeijingtest0/Desktop/workfolder/xls/彩超-乳腺及淋巴结(双侧)_abnormal_0808.xls')
+
 
 print(path_cnt)            
             
@@ -90,64 +112,6 @@ print(path_cnt)
 
 
 
-
-'''
-path='/home/tuixiangbeijingtest0/Desktop/workfolder/text1/img/'
-savepath='/home/tuixiangbeijingtest0/Desktop/workfolder/text1/img3/'
-print(os.listdir(path))
-imglist=os.listdir(path)
-print(len(imglist))
-for item in imglist:
-    a=path+item
-    b=savepath+item
-    c='gdcmconv -raw '+a+' '+b
-    #print(c)
-    os.system(c)
-
-
-
-
-
-
-xlspath='/home/tuixiangbeijingtest0/Desktop/workfolder/xls/1W_data.xls'
-savepath='/home/tuixiangbeijingtest0/Desktop/workfolder/text1/'
-head='smb:'
-tstr='gdcmconv —raw '
-count=0
-
-data=xlrd.open_workbook(xlspath)
-table=data.sheet_by_index(0)
-nrows=table.nrows
-for i in range(1,nrows):
-    imgpathhead=table.cell(i,5).value
-    #print(imgpath)
-    imgpath=table.cell(i,6).value
-    #print(imgpathhead)
-    ipath=head+str(imgpathhead)+str(imgpath)
-    #print(ipath)
-    tstr1=tstr+str(ipath)+' '+savepath+str(imgpath)
-    #print(tstr1)
-    dirpath=os.path.split(imgpath)
-    dirpath1=savepath+dirpath[0]+'/'
-    print(tstr1)
-    #os.system('gdcmconv —raw /home/tuixiangbeijingtest0/Desktop/compress-test/hw1 /home/tuixiangbeijingtest0/Desktop/compress-test/hwtest[%i]')
-            
-    if os.path.exists(dirpath1):
-        #os.system(tstr1)
-        shutil.copyfile(str(ipath),savepath+str(imgpath))
-        count+=1
-    else:
-        os.makedirs(dirpath1)
-        #os.system(tstr1)
-        shutil.copyfile(str(ipath),savepath+str(imgpath))
-        count+=1
-    print(count)
-    if count>10:
-        break
- '''
-            
-                
-            
             
             
             
